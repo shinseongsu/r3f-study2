@@ -1,4 +1,4 @@
-import { AnimationMixer, Object3D, Scene } from 'three';
+import { AnimationMixer, Object3D, Scene, Mesh } from 'three';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface PlayerInfo {
@@ -20,8 +20,8 @@ export class Player {
 
         info.gltfLoader.load(info.modelSrc, (glb: GLTF) => {
             glb.scene.traverse((child) => {
-                if ((child as Object3D).isMesh) {
-                    (child as any).castShadow = true;
+                if (child instanceof Mesh) {
+                    child.castShadow = true;
                 }
             });
 

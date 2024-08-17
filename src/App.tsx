@@ -165,28 +165,32 @@ const App: React.FC = () => {
                             console.log('나와');
                             house.visible = true;
                             spotMesh.material.color.set('seagreen');
-                            gsap.to(house.modelMesh.position, {
-                                duration: 1,
-                                y: 1,
-                                ease: 'Bounce.easeOut',
-                            });
-                            gsap.to(camera.position, {
-                                duration: 1,
-                                y: 3,
-                            });
+                            if(house.modelMesh) {
+                                gsap.to(house.modelMesh.position, {
+                                    duration: 1,
+                                    y: 1,
+                                    ease: 'Bounce.easeOut',
+                                });
+                                gsap.to(camera.position, {
+                                    duration: 1,
+                                    y: 3,
+                                });
+                            }
                         }
                     } else if (house.visible) {
                         console.log('들어가');
                         house.visible = false;
                         spotMesh.material.color.set('yellow');
-                        gsap.to(house.modelMesh.position, {
-                            duration: 0.5,
-                            y: -1.3,
-                        });
-                        gsap.to(camera.position, {
-                            duration: 1,
-                            y: 5,
-                        });
+                        if(house.modelMesh) {
+                            gsap.to(house.modelMesh.position, {
+                                duration: 0.5,
+                                y: -1.3,
+                            });
+                            gsap.to(camera.position, {
+                                duration: 1,
+                                y: 5,
+                            });
+                        }
                     }
                 } else {
                     player.actions[1].stop();
