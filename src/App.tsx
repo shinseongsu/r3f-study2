@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Player } from './components/Player';
 import { House } from './components/House';
+import { QuestionBoard } from './components/QuestionBoard';
 import gsap from 'gsap';
 
 const App: React.FC = () => {
@@ -94,6 +95,16 @@ const App: React.FC = () => {
         spotMesh.receiveShadow = true;
         scene.add(spotMesh);
 
+        // New question area
+        const questionSpotMesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(3, 3),
+            new THREE.MeshStandardMaterial({ color: 'blue', transparent: true, opacity: 0.5 })
+        );
+        questionSpotMesh.position.set(-5, 0.005, 5);
+        questionSpotMesh.rotation.x = -Math.PI / 2;
+        questionSpotMesh.receiveShadow = true;
+        scene.add(questionSpotMesh);
+
         const gltfLoader = new GLTFLoader();
 
         const house = new House({
@@ -112,11 +123,14 @@ const App: React.FC = () => {
             modelSrc: '/model/ilbuni.glb',
         });
 
+        const questionBoard = new QuestionBoard(scene, camera);
+
         const raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         let destinationPoint = new THREE.Vector3();
         let angle = 0;
         let isPressed = false;
+        let isQuestionBoardVisible = false;
 
         // 그리기
         const clock = new THREE.Clock();
@@ -192,11 +206,41 @@ const App: React.FC = () => {
                             });
                         }
                     }
+
+                    // Check if player is in question area
+                    if (
+                        Math.abs(questionSpotMesh.position.x - player.modelMesh.position.x) < 1.5 &&
+                        Math.abs(questionSpotMesh.position.z - player.modelMesh.position.z) < 1.5
+                    ) {
+                        questionSpotMesh.material.color.set('green');
+                        if (!isQuestionBoardVisible) {
+                            isQuestionBoardVisible = true;
+                            questionBoard.show();
+                            gsap.to(camera.position, {
+                                duration: 1,
+                                y: 7,
+                                z: camera.position.z + 2,
+                            });
+                        }
+                    } else {
+                        questionSpotMesh.material.color.set('blue');
+                        if (isQuestionBoardVisible) {
+                            isQuestionBoardVisible = false;
+                            questionBoard.hide();
+                            gsap.to(camera.position, {
+                                duration: 1,
+                                y: 5,
+                                z: cameraPosition.z + player.modelMesh.position.z,
+                            });
+                        }
+                    }
                 } else {
                     player.actions[1].stop();
                     player.actions[0].play();
                 }
             }
+
+            questionBoard.update();
 
             renderer.render(scene, camera);
             renderer.setAnimationLoop(draw);
@@ -244,26 +288,32 @@ const App: React.FC = () => {
         canvasRef.current.addEventListener('mousedown', (e) => {
             isPressed = true;
             calculateMousePosition(e);
+            questionBoard.onMouseDown(e);
         });
         canvasRef.current.addEventListener('mouseup', () => {
             isPressed = false;
+            questionBoard.onMouseUp();
         });
         canvasRef.current.addEventListener('mousemove', (e) => {
             if (isPressed) {
                 calculateMousePosition(e);
+                questionBoard.onMouseMove(e);
             }
         });
 
         canvasRef.current.addEventListener('touchstart', (e) => {
             isPressed = true;
             calculateMousePosition(e.touches[0]);
+            questionBoard.onMouseDown(e.touches[0]);
         });
         canvasRef.current.addEventListener('touchend', () => {
             isPressed = false;
+            questionBoard.onMouseUp();
         });
         canvasRef.current.addEventListener('touchmove', (e) => {
             if (isPressed) {
                 calculateMousePosition(e.touches[0]);
+                questionBoard.onMouseMove(e.touches[0]);
             }
         });
 
